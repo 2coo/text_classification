@@ -252,7 +252,7 @@ class Readability:
 			parentNode['readability-score'] += contentScore;
 			grandParentNode['readability-score'] += contentScore / 2;
 
-		topCandidate = None
+		topCandidate = {}
 		# get top candidate
 		for candidate in candidates:
 			candidate['readability-score'] = candidate['readability-score'] * (1 - self.getLinkDensity(candidate))
@@ -301,7 +301,7 @@ class Readability:
 		### MINIFY HTML
 		html = self.minify(self.html)
 
-		self.soup = BeautifulSoup(html, 'html.parser')
+		self.soup = BeautifulSoup(html, 'html5lib')
 		self.soup = self.removeScripts(self.soup)
 		self.soup = self.removeComments(self.soup)
 
@@ -314,6 +314,7 @@ class Readability:
 
 		return {
 			**metadata,
+			# "textContent": self.minify(article.get("text", "")),
 			"textContent": self.minify(article.text),
-			"content": article
+			"content": str(article)
 		}

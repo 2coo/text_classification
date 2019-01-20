@@ -1,5 +1,8 @@
 import scrapy
 from readability import Readability
+import json
+import os
+from hashlib import md5
 
 class IkonSpider(scrapy.Spider):
     name = 'ikon_spider'
@@ -27,6 +30,30 @@ class IkonSpider(scrapy.Spider):
         news =  Readability(str(response.body.decode('utf8'))).parse()
         if not news['title']:
             print("Could not find the title!", response.url)
+        else:
+            # get category that i given [politics, economy, society, health, world, technology]
+            news_category = response.meta.get('category', 'default')
+
+            output = {
+                **news,
+                "ikon_category": news_category
+            }
+            pjoin = os.path.join
+            file_path = pjoin('./corpuses_ikon', news_category)
+            os.makedirs(file_path, exist_ok=True)
+            with open(pjoin(file_path, md5(news['title'].encode('utf-8')).hexdigest()+".json"), 'w') as outfile:
+                json.dump(output, outfile, ensure_ascii=False)
+
+        for next_page in response.xpath("//*[contains(@class, 'nlitem')]//a"):
+            yield response.follow(next_page, self.parse, meta={'category': response.meta.get('category', 'default')})
+
+        for next_page in response.xpath("//*[contains(@class, 'ikon-right-dir')]/parent::a"):
+            yield response.follow(next_page, self.parse, meta={'category': response.meta.get('category', 'default')})
+
+
+
+
+
 
 
 
