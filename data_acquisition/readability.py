@@ -113,40 +113,35 @@ class Readability:
 		metadata = {}
 		values = {}
 		# property is a space-separated list of values
-		propertyPattern = "/\s*(dc|dcterm|og|twitter)\s*:\s*(author|creator|description|title|site_name)\s*/gi"
+		propertyPattern = "\s*(dc|dcterm|og|twitter)\s*\:\s*(author|creator|description|title|site_name|type)\s*"
 
 		# name is a single value
-		namePattern = "^\s*(?:(dc|dcterm|og|twitter|weibo:(article|webpage))\s*[\.:]\s*)?(author|creator|description|title|site_name)\s*$"
+		namePattern = "^\s*(?:(dc|dcterm|og|twitter|weibo:(article|webpage))\s*[\.:]\s*)?(author|creator|description|title|site_name|type)\s*$"
 
 		for meta in self.soup.find_all('meta'):
-			if meta.has_attr("name"):
-				elementName = meta["name"]
-			else:
-				elementName = None
-			if meta.has_attr("property"):
-				elementProperty = meta["property"]
-			else:
-				elementProperty = ""
+			elementName = meta.get("name", "")
+			elementProperty = meta.get("property", "")
 			content = meta["content"]
 			matches = None
 			name = None
-			
 			matches = re.findall(propertyPattern, elementProperty)
 
 			if elementProperty:
 				if matches:
 					for match in matches:
-						name  = match.lower().replace('\s', '')
+						if isinstance(match, tuple):
+							name = ":".join(list(match)).replace("\s", '')
+						else:
+							name = match.lower().replace('\s', '')
 						values[name] = content.strip()
 			if not matches and elementName and re.search(namePattern, elementName):
-				# print("YEES")
 				name = elementName
 				if content:
 					name = name.lower().replace('\s', '').replace('.', ':')
 					values[name] = content.strip()
 
 		metadata = {
-			#get title
+			# get title
 			"title": values.get("dc:title") or
                      values.get("dcterm:title") or
                      values.get("og:title") or
@@ -154,11 +149,11 @@ class Readability:
                      values.get("weibo:webpage:title") or
                      values.get("title") or
                      values.get("twitter:title"),
-			#get author
+			# get author
 			"byline": values.get("dc:creator") or
                       values.get("dcterm:creator") or
                       values.get("author"),
-			#get description
+			# get description
 			"excerpt": values.get("dc:description") or
                        values.get("dcterm:description") or
                        values.get("og:description") or
@@ -166,6 +161,8 @@ class Readability:
                        values.get("weibo:webpage:description") or
                        values.get("description") or
                        values.get("twitter:description"),
+			# get type
+			"type": values.get("og:type", "default"),
 			# get site name
 			"siteName": values.get("og:site_name")
 		}
@@ -316,10 +313,7 @@ class Readability:
 		
 
 		return {
-			"title": metadata["title"],
-			"byline": metadata["byline"],
-			"excerpt": metadata["excerpt"],
-			"siteName": metadata["siteName"],
+			**metadata,
 			"textContent": self.minify(article.text),
 			"content": article
 		}

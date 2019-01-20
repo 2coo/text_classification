@@ -1,10 +1,14 @@
-from readability2 import Readability
+from readability import Readability
 import urllib.request as urllib
 
-response = urllib.urlopen('http://medee.mn/main.php?eid=116053')
+response = urllib.urlopen('https://ikon.mn/n/1hat')
 
 article =  Readability(str(response.read().decode('utf8'))).parse()
 
-print(article["title"])
-print("-------------------------------------------------------------------------------------------------------------------------------------")
-print(article["textContent"])
+# print(article["atype"])
+for key, value in article.items():
+    print(key)
+    # print("#"+key+"#")
+    # print("".join(["="]*50))
+    # print(value)
+    # print("".join(["="]*50))

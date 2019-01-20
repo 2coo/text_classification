@@ -1,4 +1,5 @@
 import scrapy
+from readability import Readability
 
 class IkonSpider(scrapy.Spider):
     name = 'ikon_spider'
@@ -23,9 +24,10 @@ class IkonSpider(scrapy.Spider):
             yield scrapy.Request(url, meta={'category': category})
 
     def parse(self, response):
-        news_title = response.css('.inews h1::text').extract()
+        news =  Readability(str(response.body.decode('utf8'))).parse()
+        if not news['title']:
+            print("Could not find the title!", response.url)
 
-        if len(news_title.strip()) == 0:
-            print('Avengers Assemble !!!!')
-        else:
+
+
             
