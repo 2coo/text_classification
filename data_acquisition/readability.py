@@ -121,7 +121,7 @@ class Readability:
 		for meta in self.soup.find_all('meta'):
 			elementName = meta.get("name", "")
 			elementProperty = meta.get("property", "")
-			content = meta["content"]
+			content = meta.get("content", "")
 			matches = None
 			name = None
 			matches = re.findall(propertyPattern, elementProperty)
